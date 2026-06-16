@@ -14,7 +14,9 @@ interface Member {
 }
 
 export default function GroupTab({ profile, onUpdateProfile }: Props) {
-  const [groupInput, setGroupInput] = useState('');
+  const [createName, setCreateName] = useState('');
+  const [joinToken, setJoinToken] = useState('');
+  const [groupName, setGroupName] = useState('');
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -24,6 +26,14 @@ export default function GroupTab({ profile, onUpdateProfile }: Props) {
       if (!profile.joinedGroup) return;
       setLoading(true);
       
+      // Fetch group name
+      const { data: groupData } = await supabase.from('groups').select('name').eq('token', profile.joinedGroup).single();
+      if (groupData) {
+        setGroupName(groupData.name);
+      } else {
+        setGroupName('Unknown Group');
+      }
+
       const { data: groupUsers } = await supabase.from('users').select('id, current_level').eq('joined_group', profile.joinedGroup);
       
       if (groupUsers) {
@@ -44,11 +54,42 @@ export default function GroupTab({ profile, onUpdateProfile }: Props) {
     fetchGroupData();
   }, [profile.joinedGroup, profile.id]);
 
-  const handleJoin = (e: React.FormEvent) => {
+  const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!groupInput.trim()) return;
-    onUpdateProfile({ ...profile, joinedGroup: groupInput.trim() });
-    setGroupInput('');
+    if (!createName.trim()) return;
+    
+    const token = Math.random().toString(36).substring(2, 8).toUpperCase();
+    
+    // Create group in DB
+    const { error } = await supabase.from('groups').insert({
+      name: createName.trim(),
+      token: token
+    });
+
+    if (error) {
+      alert("Error creating group. Please try again.");
+      return;
+    }
+
+    onUpdateProfile({ ...profile, joinedGroup: token });
+    setCreateName('');
+  };
+
+  const handleJoin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!joinToken.trim()) return;
+    
+    const token = joinToken.trim().toUpperCase();
+    
+    // Check if token exists
+    const { data: groupData } = await supabase.from('groups').select('name').eq('token', token).single();
+    
+    if (groupData) {
+      onUpdateProfile({ ...profile, joinedGroup: token });
+      setJoinToken('');
+    } else {
+      alert("Invalid Invite Token. Please check and try again.");
+    }
   };
 
   const handleLeave = () => {
@@ -57,21 +98,34 @@ export default function GroupTab({ profile, onUpdateProfile }: Props) {
 
   if (!profile.joinedGroup) {
     return (
-      <div className="fade-in" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <h2 style={{ marginBottom: '16px', color: 'var(--primary-color)' }}>My Group</h2>
+      <div className="fade-in" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', overflowY: 'auto' }}>
+        <h2 style={{ marginBottom: '16px', color: 'var(--primary-color)' }}>Groups</h2>
         <p style={{ color: 'var(--text-muted)', marginBottom: '32px', textAlign: 'center' }}>
-          You aren't in a group yet. Join one to share progress with friends!
+          Create a group or join one with an invite token!
         </p>
         
-        <form onSubmit={handleJoin} className="glass-panel" style={{ padding: '24px', width: '100%', maxWidth: '320px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <form onSubmit={handleCreate} className="glass-panel" style={{ padding: '24px', width: '100%', maxWidth: '320px', display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
+          <h3 style={{ color: 'var(--text-main)', textAlign: 'center', marginBottom: '8px' }}>Create New Group</h3>
           <input 
             type="text" 
-            placeholder="Enter Group Name..." 
-            value={groupInput}
-            onChange={e => setGroupInput(e.target.value)}
+            placeholder="Group Name (e.g. My Family)" 
+            value={createName}
+            onChange={e => setCreateName(e.target.value)}
             style={{ padding: '12px', borderRadius: '8px', border: '1px solid #334155', background: '#0f172a', color: '#fff' }}
           />
-          <button type="submit" className="btn-primary">Join Group</button>
+          <button type="submit" className="btn-primary">Create Group</button>
+        </form>
+
+        <form onSubmit={handleJoin} className="glass-panel" style={{ padding: '24px', width: '100%', maxWidth: '320px', display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
+          <h3 style={{ color: 'var(--text-main)', textAlign: 'center', marginBottom: '8px' }}>Join Existing Group</h3>
+          <input 
+            type="text" 
+            placeholder="Invite Token (e.g. X7B92A)" 
+            value={joinToken}
+            onChange={e => setJoinToken(e.target.value)}
+            style={{ padding: '12px', borderRadius: '8px', border: '1px solid #334155', background: '#0f172a', color: '#fff', textTransform: 'uppercase' }}
+          />
+          <button type="submit" className="btn-primary" style={{ background: 'transparent', border: '1px solid var(--primary-color)', color: 'var(--primary-color)' }}>Join Group</button>
         </form>
       </div>
     );
@@ -79,7 +133,7 @@ export default function GroupTab({ profile, onUpdateProfile }: Props) {
 
   return (
     <div className="fade-in" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
-      <h2 style={{ textAlign: 'center', marginBottom: '8px', color: 'var(--primary-color)' }}>{profile.joinedGroup}</h2>
+      <h2 style={{ textAlign: 'center', marginBottom: '8px', color: 'var(--primary-color)' }}>{groupName}</h2>
       <p style={{ textAlign: 'center', color: 'var(--text-muted)', marginBottom: '16px' }}>Group Leaderboard</p>
       
       <button 
@@ -92,7 +146,7 @@ export default function GroupTab({ profile, onUpdateProfile }: Props) {
         }}
         style={{ padding: '12px', width: '100%', background: copied ? '#10b981' : 'var(--primary-color)', color: '#000', borderRadius: '100px', fontWeight: 'bold', marginBottom: '24px', border: 'none', cursor: 'pointer', transition: 'background 0.3s' }}
       >
-        {copied ? 'Copied to Clipboard!' : 'Share Invite Token'}
+        {copied ? 'Token Copied!' : `Share Invite Token: ${profile.joinedGroup}`}
       </button>
 
       <div className="glass-panel" style={{ padding: '16px', marginBottom: '24px', width: '100%' }}>
@@ -103,13 +157,13 @@ export default function GroupTab({ profile, onUpdateProfile }: Props) {
         ) : (
           members.map((member, index) => (
             <div key={index} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: index < members.length - 1 ? '1px solid #334155' : 'none' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
                 <div style={{ width: '24px', color: 'var(--text-muted)', fontWeight: 'bold' }}>#{index + 1}</div>
                 <div style={{ fontWeight: member.name === 'You' ? 'bold' : 'normal', color: member.name === 'You' ? 'var(--primary-color)' : '#fff' }}>
                   {member.name}
                 </div>
               </div>
-              <div style={{ textAlign: 'right' }}>
+              <div style={{ textAlign: 'right', minWidth: '80px' }}>
                 <div style={{ fontSize: '0.9rem', color: '#fff' }}>Lvl {member.level}</div>
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{member.workouts} workouts</div>
               </div>
