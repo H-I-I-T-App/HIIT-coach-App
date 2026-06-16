@@ -16,7 +16,7 @@ export default function PostWorkoutSurvey({ workoutId, onSave, onCancel }: Props
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave({
-      id: crypto.randomUUID(),
+      id: typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).substring(2),
       date: new Date().toISOString(),
       workoutId,
       completed,
