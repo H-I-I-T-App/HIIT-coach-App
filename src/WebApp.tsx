@@ -51,13 +51,17 @@ export default function WebApp() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setLoadingAuth(false);
-      if (session) initProfile(session.user.id);
+      if (session) {
+        initProfile(session.user.id, session);
+      } else {
+        setProfile(DEFAULT_PROFILE);
+      }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       if (session) {
-        initProfile(session.user.id);
+        initProfile(session.user.id, session);
       } else {
         setProfile(DEFAULT_PROFILE);
       }
@@ -78,19 +82,28 @@ export default function WebApp() {
     }
   }, [appState]);
 
-  const initProfile = async (userId: string) => {
-    let p = { ...DEFAULT_PROFILE, id: userId };
+  const initProfile = async (userId: string, currentSession: any) => {
+    let p: UserProfile = { ...DEFAULT_PROFILE, id: userId };
+
+    const userName = currentSession?.user?.user_metadata?.full_name || currentSession?.user?.email?.split('@')[0] || 'Unknown User';
 
     const { data: user } = await supabase.from('users').select('*').eq('id', userId).single();
     if (user) {
       p = { 
         id: user.id, 
+        name: user.name || userName,
         age: user.age || 30, 
         currentLevel: user.current_level, 
         joinedGroup: user.joined_group,
         customWorkouts: user.custom_workouts || [],
         history: [] 
       };
+      
+      // Update name in DB if missing or different
+      if (!user.name || user.name !== userName) {
+        await supabase.from('users').update({ name: userName }).eq('id', userId);
+        p.name = userName;
+      }
       
       const { data: records } = await supabase.from('workout_records').select('*').eq('user_id', user.id).order('date', { ascending: true });
       if (records) {
@@ -124,6 +137,7 @@ export default function WebApp() {
     if (!newProfile.id) return;
     
     await supabase.from('users').update({
+      name: newProfile.name,
       age: newProfile.age,
       current_level: newProfile.currentLevel,
       joined_group: newProfile.joinedGroup,

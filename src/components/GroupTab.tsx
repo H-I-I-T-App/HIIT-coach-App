@@ -34,13 +34,13 @@ export default function GroupTab({ profile, onUpdateProfile }: Props) {
         setGroupName('Unknown Group');
       }
 
-      const { data: groupUsers } = await supabase.from('users').select('id, current_level').eq('joined_group', profile.joinedGroup);
+      const { data: groupUsers } = await supabase.from('users').select('id, current_level, name').eq('joined_group', profile.joinedGroup);
       
       if (groupUsers) {
         const membersData: Member[] = await Promise.all(groupUsers.map(async (u) => {
           const { count } = await supabase.from('workout_records').select('*', { count: 'exact', head: true }).eq('user_id', u.id).eq('completed', true);
           return {
-            name: u.id === profile.id ? 'You' : `User ${u.id.substring(0,4)}`,
+            name: u.id === profile.id ? 'You' : (u.name || `User ${u.id.substring(0,4)}`),
             level: u.current_level,
             workouts: count || 0
           };
