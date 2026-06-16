@@ -23,7 +23,7 @@ const formatTime = (seconds: number) => {
 
 const DEFAULT_PROFILE: UserProfile = { age: 30, currentLevel: 1, history: [], joinedGroup: null };
 
-function App() {
+export default function WebApp() {
   const [session, setSession] = useState<Session | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
 
@@ -453,5 +453,3 @@ function App() {
     </div>
   );
 }
-
-export default App;
