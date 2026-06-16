@@ -17,6 +17,7 @@ export default function GroupTab({ profile, onUpdateProfile }: Props) {
   const [groupInput, setGroupInput] = useState('');
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const fetchGroupData = async () => {
@@ -79,9 +80,22 @@ export default function GroupTab({ profile, onUpdateProfile }: Props) {
   return (
     <div className="fade-in" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
       <h2 style={{ textAlign: 'center', marginBottom: '8px', color: 'var(--primary-color)' }}>{profile.joinedGroup}</h2>
-      <p style={{ textAlign: 'center', color: 'var(--text-muted)', marginBottom: '24px' }}>Group Leaderboard</p>
+      <p style={{ textAlign: 'center', color: 'var(--text-muted)', marginBottom: '16px' }}>Group Leaderboard</p>
       
-      <div className="glass-panel" style={{ padding: '16px', marginBottom: '24px' }}>
+      <button 
+        onClick={() => {
+          if (profile.joinedGroup) {
+            navigator.clipboard.writeText(profile.joinedGroup);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+          }
+        }}
+        style={{ padding: '12px', width: '100%', background: copied ? '#10b981' : 'var(--primary-color)', color: '#000', borderRadius: '100px', fontWeight: 'bold', marginBottom: '24px', border: 'none', cursor: 'pointer', transition: 'background 0.3s' }}
+      >
+        {copied ? 'Copied to Clipboard!' : 'Share Invite Token'}
+      </button>
+
+      <div className="glass-panel" style={{ padding: '16px', marginBottom: '24px', width: '100%' }}>
         {loading ? (
           <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>Loading group data...</div>
         ) : members.length === 0 ? (
