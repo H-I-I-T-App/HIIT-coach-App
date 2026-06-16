@@ -395,6 +395,9 @@ export default function WebApp() {
             <div style={{ marginTop: '8px', color: 'var(--primary-color)', fontWeight: 'bold' }}>
               Current Level: {profile.currentLevel}
             </div>
+            <div style={{ marginTop: '8px', color: 'var(--text-muted)' }}>
+              Welcome back, <strong style={{ color: 'var(--text-main)' }}>{session.user.user_metadata?.full_name || session.user.email?.split('@')[0]}</strong>
+            </div>
           </div>
           
           <div style={{ flex: 1 }}>
