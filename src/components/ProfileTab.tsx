@@ -1,4 +1,5 @@
 import type { UserProfile } from '../types';
+import { supabase } from '../supabaseClient';
 
 interface Props {
   profile: UserProfile;
@@ -70,6 +71,9 @@ export default function ProfileTab({ profile }: Props) {
           {days}
         </div>
       </div>
+      <button onClick={() => supabase.auth.signOut()} style={{ padding: '16px', background: 'transparent', border: '1px solid #ef4444', color: '#ef4444', borderRadius: '100px', fontWeight: 'bold', marginTop: '24px', width: '100%' }}>
+        Sign Out
+      </button>
     </div>
   );
 }

@@ -9,6 +9,8 @@ import logo from './assets/logo.png';
 import type { WorkoutConfig, WorkoutRecord, UserProfile } from './types';
 import { LEVEL_WORKOUTS } from './data/workouts';
 import { supabase } from './supabaseClient';
+import LoginScreen from './components/LoginScreen';
+import { Session } from '@supabase/supabase-js';
 
 type AppState = 'home' | 'profile' | 'group' | 'custom-config' | 'active' | 'survey' | 'finished';
 type Phase = 'warmup' | 'prep' | 'work' | 'rest' | 'cooldown';
@@ -22,6 +24,9 @@ const formatTime = (seconds: number) => {
 const DEFAULT_PROFILE: UserProfile = { age: 30, currentLevel: 1, history: [], joinedGroup: null };
 
 function App() {
+  const [session, setSession] = useState<Session | null>(null);
+  const [loadingAuth, setLoadingAuth] = useState(true);
+
   const [appState, setAppState] = useState<AppState>('home');
   const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE);
   const [activeWorkoutConfig, setActiveWorkoutConfig] = useState<WorkoutConfig | null>(null);
@@ -42,58 +47,63 @@ function App() {
   const audioCtxRef = useRef<AudioContext | null>(null);
 
   useEffect(() => {
-    const initProfile = async () => {
-      let savedId = localStorage.getItem('hiit_user_id');
-      let p = { ...DEFAULT_PROFILE };
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setLoadingAuth(false);
+      if (session) initProfile(session.user.id);
+    });
 
-      if (savedId) {
-        const { data: user } = await supabase.from('users').select('*').eq('id', savedId).single();
-        if (user) {
-          p = { 
-            id: user.id, 
-            age: user.age || 30, 
-            currentLevel: user.current_level, 
-            joinedGroup: user.joined_group,
-            history: [] 
-          };
-          
-          const { data: records } = await supabase.from('workout_records').select('*').eq('user_id', user.id).order('date', { ascending: true });
-          if (records) {
-            p.history = records.map(r => ({
-              id: r.id,
-              date: r.date,
-              workoutId: r.workout_id,
-              completed: r.completed,
-              rpe: r.rpe,
-              averageHr: r.average_hr,
-              recoveryFeeling: r.recovery_feeling
-            }));
-          }
-        }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (session) {
+        initProfile(session.user.id);
       } else {
-        const { data: user, error } = await supabase.from('users').insert([{ current_level: 1 }]).select().single();
-        if (user && !error) {
-          savedId = user.id;
-          localStorage.setItem('hiit_user_id', user.id);
-          p.id = user.id;
-        }
+        setProfile(DEFAULT_PROFILE);
       }
+    });
 
-      if (p.history.length > 0) {
-        const lastWorkout = new Date(p.history[p.history.length - 1].date).getTime();
-        const twoWeeks = 14 * 24 * 60 * 60 * 1000;
-        if (Date.now() - lastWorkout > twoWeeks && p.currentLevel > 1) {
-          p.currentLevel -= 1;
-          alert("It's been over 2 weeks since your last workout. We've bumped you down a level to ease you back in!");
-          p.history.push({ id: 'demotion', date: new Date().toISOString(), workoutId: 'system', completed: true, rpe: 0, averageHr: 0, recoveryFeeling: 'N/A' });
-          if (p.id) await supabase.from('users').update({ current_level: p.currentLevel }).eq('id', p.id);
-        }
-      }
-      setProfile(p);
-    };
-
-    initProfile();
+    return () => subscription.unsubscribe();
   }, []);
+
+  const initProfile = async (userId: string) => {
+    let p = { ...DEFAULT_PROFILE, id: userId };
+
+    const { data: user } = await supabase.from('users').select('*').eq('id', userId).single();
+    if (user) {
+      p = { 
+        id: user.id, 
+        age: user.age || 30, 
+        currentLevel: user.current_level, 
+        joinedGroup: user.joined_group,
+        history: [] 
+      };
+      
+      const { data: records } = await supabase.from('workout_records').select('*').eq('user_id', user.id).order('date', { ascending: true });
+      if (records) {
+        p.history = records.map(r => ({
+          id: r.id,
+          date: r.date,
+          workoutId: r.workout_id,
+          completed: r.completed,
+          rpe: r.rpe,
+          averageHr: r.average_hr,
+          recoveryFeeling: r.recovery_feeling
+        }));
+      }
+    }
+
+    if (p.history.length > 0) {
+      const lastWorkout = new Date(p.history[p.history.length - 1].date).getTime();
+      const twoWeeks = 14 * 24 * 60 * 60 * 1000;
+      if (Date.now() - lastWorkout > twoWeeks && p.currentLevel > 1) {
+        p.currentLevel -= 1;
+        alert("It's been over 2 weeks since your last workout. We've bumped you down a level to ease you back in!");
+        p.history.push({ id: 'demotion', date: new Date().toISOString(), workoutId: 'system', completed: true, rpe: 0, averageHr: 0, recoveryFeeling: 'N/A' });
+        await supabase.from('users').update({ current_level: p.currentLevel }).eq('id', p.id);
+      }
+    }
+    setProfile(p);
+  };
 
   const saveProfile = async (newProfile: UserProfile) => {
     setProfile(newProfile);
@@ -308,8 +318,16 @@ function App() {
     return 1 - (timeLeft / total);
   };
 
+  if (loadingAuth) {
+    return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'var(--primary-color)' }}>Loading...</div>;
+  }
+
+  if (!session) {
+    return <LoginScreen />;
+  }
+
   return (
-    <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', height: '100%', flex: 1, position: 'relative' }}>
+    <div style={{ maxWidth: '600px', margin: '0 auto', minHeight: '100vh', display: 'flex', flexDirection: 'column', padding: '24px' }}>
       {appState !== 'home' && appState !== 'profile' && appState !== 'group' && (
         <img 
           src={logo} 
