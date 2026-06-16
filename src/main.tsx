@@ -15,6 +15,7 @@ createRoot(document.getElementById('root')!).render(
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/support" element={<Support />} />
         <Route path="/app" element={<WebApp />} />
+        <Route path="*" element={<LandingPage />} />
       </Routes>
     </HashRouter>
   </StrictMode>
