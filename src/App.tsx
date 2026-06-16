@@ -283,7 +283,7 @@ function App() {
             <h3 style={{ marginBottom: '16px', borderBottom: '1px solid #334155', paddingBottom: '8px', textAlign: 'center' }}>Workouts</h3>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
               {LEVEL_WORKOUTS.map(w => (
-                <div key={w.id} className="glass-panel" style={{ padding: '12px 32px', cursor: 'pointer', textAlign: 'center', minWidth: '200px', width: 'fit-content' }} onClick={() => startWorkoutConfig(w)}>
+                <div key={w.id} className="glass-panel" style={{ padding: '12px 24px', cursor: 'pointer', textAlign: 'center', width: '280px' }} onClick={() => startWorkoutConfig(w)}>
                   <h4 style={{ color: 'var(--primary-color)', margin: 0 }}>{w.name}</h4>
                 </div>
               ))}
