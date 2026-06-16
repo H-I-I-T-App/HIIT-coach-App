@@ -25,4 +25,5 @@ export interface UserProfile {
   currentLevel: number;
   history: WorkoutRecord[];
   joinedGroup: string | null;
+  customWorkouts?: WorkoutConfig[];
 }

@@ -75,6 +75,7 @@ export default function WebApp() {
         age: user.age || 30, 
         currentLevel: user.current_level, 
         joinedGroup: user.joined_group,
+        customWorkouts: user.custom_workouts || [],
         history: [] 
       };
       
@@ -112,7 +113,8 @@ export default function WebApp() {
     await supabase.from('users').update({
       age: newProfile.age,
       current_level: newProfile.currentLevel,
-      joined_group: newProfile.joinedGroup
+      joined_group: newProfile.joinedGroup,
+      custom_workouts: newProfile.customWorkouts || []
     }).eq('id', newProfile.id);
 
     const records = newProfile.history.filter(r => r.id !== 'demotion' && r.id !== 'promotion').map(r => ({
@@ -182,17 +184,41 @@ export default function WebApp() {
     setIsPaused(false);
   };
 
-  const startCustomWorkout = () => {
-    startWorkoutConfig({
-      id: 'custom',
-      name: 'Custom Workout',
+  const startCustomWorkout = async () => {
+    let customWorkouts = profile.customWorkouts || [];
+    let workoutName = `My Level ${customWorkouts.length + 1}`;
+    let isNew = false;
+    
+    if (customWorkouts.length < 3) {
+      isNew = true;
+    } else {
+      workoutName = 'Custom Workout';
+    }
+
+    const config: WorkoutConfig = {
+      id: isNew ? `custom-${Date.now()}` : 'custom',
+      name: workoutName,
       warmupTime: 0,
       workTime,
       restTime,
       rounds,
       cooldownTime: 0,
       rpeTarget: 'N/A'
-    });
+    };
+
+    if (isNew) {
+      const updatedProfile = { ...profile, customWorkouts: [...customWorkouts, config] };
+      saveProfile(updatedProfile);
+    }
+
+    startWorkoutConfig(config);
+  };
+
+  const deleteCustomWorkout = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    const updatedCustomWorkouts = (profile.customWorkouts || []).filter(w => w.id !== id);
+    const updatedProfile = { ...profile, customWorkouts: updatedCustomWorkouts };
+    saveProfile(updatedProfile);
   };
 
   const stopWorkout = () => {
@@ -366,9 +392,26 @@ export default function WebApp() {
                   <h4 style={{ color: 'var(--primary-color)', margin: 0 }}>{w.name}</h4>
                 </div>
               ))}
+              
+              {profile.customWorkouts && profile.customWorkouts.length > 0 && (
+                <div style={{ width: '280px', marginTop: '16px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {profile.customWorkouts.map(cw => (
+                    <div key={cw.id} className="glass-panel" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', cursor: 'pointer', textAlign: 'left', width: '100%', background: 'rgba(16, 185, 129, 0.1)', borderColor: 'rgba(16, 185, 129, 0.3)' }} onClick={() => startWorkoutConfig(cw)}>
+                      <h4 style={{ color: '#10b981', margin: 0 }}>{cw.name}</h4>
+                      <button 
+                        onClick={(e) => deleteCustomWorkout(e, cw.id)} 
+                        style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '4px' }}
+                        title="Delete Custom Workout"
+                      >
+                        <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>&times;</span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
-            <button style={{ width: '100%', padding: '16px', marginTop: '16px', background: 'transparent', border: '1px solid var(--primary-color)', color: 'var(--primary-color)', borderRadius: '100px', fontWeight: 'bold' }} onClick={() => setAppState('custom-config')}>
+            <button style={{ width: '100%', padding: '16px', marginTop: '24px', background: 'transparent', border: '1px solid var(--primary-color)', color: 'var(--primary-color)', borderRadius: '100px', fontWeight: 'bold' }} onClick={() => setAppState('custom-config')}>
               Create Custom Workout
             </button>
           </div>
