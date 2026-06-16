@@ -18,18 +18,32 @@ export default function ProfileTab({ profile }: Props) {
     .filter(record => record.completed)
     .map(record => new Date(record.date).toDateString());
 
+  let startDate: Date | null = null;
+  if (profile.history.length > 0) {
+    const firstWorkout = profile.history.reduce((min, record) => {
+      const d = new Date(record.date);
+      return d < min ? d : min;
+    }, new Date(profile.history[0].date));
+    startDate = new Date(firstWorkout.getFullYear(), firstWorkout.getMonth(), firstWorkout.getDate());
+  }
+
   const days = [];
   for (let i = 0; i < firstDayOfMonth; i++) {
     days.push(<div key={`empty-${i}`} style={{ padding: '8px' }}></div>);
   }
 
   for (let d = 1; d <= daysInMonth; d++) {
-    const dateStr = new Date(year, month, d).toDateString();
+    const currentDate = new Date(year, month, d);
+    const dateStr = currentDate.toDateString();
     const isCompleted = completedDates.includes(dateStr);
     const isToday = dateStr === today.toDateString();
     
-    const isPast = new Date(year, month, d) < new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const isMissed = isPast && !isCompleted;
+    const isPast = currentDate < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    
+    let isMissed = false;
+    if (isPast && !isCompleted && startDate && currentDate >= startDate) {
+      isMissed = true;
+    }
 
     const bgColor = isCompleted ? '#10b981' : isMissed ? 'rgba(239, 68, 68, 0.15)' : 'transparent';
     const textColor = isCompleted ? '#000' : isMissed ? '#ef4444' : 'var(--text-main)';
