@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Play, Pause, Square, RotateCcw, Home, User, Users } from 'lucide-react';
+import { Play, Pause, Square, RotateCcw, Home, User, Users, LogOut } from 'lucide-react';
 import TimerRing from './components/TimerRing';
 import ConfigSlider from './components/ConfigSlider';
 import PostWorkoutSurvey from './components/PostWorkoutSurvey';
@@ -327,7 +327,14 @@ function App() {
   }
 
   return (
-    <div style={{ maxWidth: '600px', margin: '0 auto', minHeight: '100vh', display: 'flex', flexDirection: 'column', padding: '24px' }}>
+    <div style={{ maxWidth: '600px', margin: '0 auto', minHeight: '100vh', display: 'flex', flexDirection: 'column', padding: '24px', position: 'relative' }}>
+      <button 
+        onClick={() => supabase.auth.signOut()} 
+        style={{ position: 'absolute', top: '24px', right: '24px', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', zIndex: 100 }}
+        title="Sign Out"
+      >
+        <LogOut size={24} />
+      </button>
       {appState !== 'home' && appState !== 'profile' && appState !== 'group' && (
         <img 
           src={logo} 
