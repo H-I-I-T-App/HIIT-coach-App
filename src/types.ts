@@ -20,6 +20,7 @@ export interface WorkoutRecord {
 }
 
 export interface UserProfile {
+  id?: string;
   age: number;
   currentLevel: number;
   history: WorkoutRecord[];

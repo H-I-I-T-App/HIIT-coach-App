@@ -8,6 +8,7 @@ import GroupTab from './components/GroupTab';
 import logo from './assets/logo.png';
 import type { WorkoutConfig, WorkoutRecord, UserProfile } from './types';
 import { LEVEL_WORKOUTS } from './data/workouts';
+import { supabase } from './supabaseClient';
 
 type AppState = 'home' | 'profile' | 'group' | 'custom-config' | 'active' | 'survey' | 'finished';
 type Phase = 'warmup' | 'prep' | 'work' | 'rest' | 'cooldown';
@@ -41,30 +42,83 @@ function App() {
   const audioCtxRef = useRef<AudioContext | null>(null);
 
   useEffect(() => {
-    const saved = localStorage.getItem('hiit_profile');
-    if (saved) {
-      try {
-        const p: UserProfile = JSON.parse(saved);
-        // Miss 2 weeks logic
-        if (p.history.length > 0) {
-          const lastWorkout = new Date(p.history[p.history.length - 1].date).getTime();
-          const twoWeeks = 14 * 24 * 60 * 60 * 1000;
-          if (Date.now() - lastWorkout > twoWeeks && p.currentLevel > 1) {
-            p.currentLevel -= 1;
-            alert("It's been over 2 weeks since your last workout. We've bumped you down a level to ease you back in!");
-            p.history.push({ id: 'demotion', date: new Date().toISOString(), workoutId: 'system', completed: true, rpe: 0, averageHr: 0, recoveryFeeling: 'N/A' });
+    const initProfile = async () => {
+      let savedId = localStorage.getItem('hiit_user_id');
+      let p = { ...DEFAULT_PROFILE };
+
+      if (savedId) {
+        const { data: user } = await supabase.from('users').select('*').eq('id', savedId).single();
+        if (user) {
+          p = { 
+            id: user.id, 
+            age: user.age || 30, 
+            currentLevel: user.current_level, 
+            joinedGroup: user.joined_group,
+            history: [] 
+          };
+          
+          const { data: records } = await supabase.from('workout_records').select('*').eq('user_id', user.id).order('date', { ascending: true });
+          if (records) {
+            p.history = records.map(r => ({
+              id: r.id,
+              date: r.date,
+              workoutId: r.workout_id,
+              completed: r.completed,
+              rpe: r.rpe,
+              averageHr: r.average_hr,
+              recoveryFeeling: r.recovery_feeling
+            }));
           }
         }
-        setProfile(p);
-      } catch (e) {
-        console.error("Failed to parse profile", e);
+      } else {
+        const { data: user, error } = await supabase.from('users').insert([{ current_level: 1 }]).select().single();
+        if (user && !error) {
+          savedId = user.id;
+          localStorage.setItem('hiit_user_id', user.id);
+          p.id = user.id;
+        }
       }
-    }
+
+      if (p.history.length > 0) {
+        const lastWorkout = new Date(p.history[p.history.length - 1].date).getTime();
+        const twoWeeks = 14 * 24 * 60 * 60 * 1000;
+        if (Date.now() - lastWorkout > twoWeeks && p.currentLevel > 1) {
+          p.currentLevel -= 1;
+          alert("It's been over 2 weeks since your last workout. We've bumped you down a level to ease you back in!");
+          p.history.push({ id: 'demotion', date: new Date().toISOString(), workoutId: 'system', completed: true, rpe: 0, averageHr: 0, recoveryFeeling: 'N/A' });
+          if (p.id) await supabase.from('users').update({ current_level: p.currentLevel }).eq('id', p.id);
+        }
+      }
+      setProfile(p);
+    };
+
+    initProfile();
   }, []);
 
-  const saveProfile = (newProfile: UserProfile) => {
+  const saveProfile = async (newProfile: UserProfile) => {
     setProfile(newProfile);
-    localStorage.setItem('hiit_profile', JSON.stringify(newProfile));
+    if (!newProfile.id) return;
+    
+    await supabase.from('users').update({
+      age: newProfile.age,
+      current_level: newProfile.currentLevel,
+      joined_group: newProfile.joinedGroup
+    }).eq('id', newProfile.id);
+
+    const records = newProfile.history.filter(r => r.id !== 'demotion' && r.id !== 'promotion').map(r => ({
+      id: r.id,
+      user_id: newProfile.id,
+      date: r.date,
+      workout_id: r.workoutId,
+      completed: r.completed,
+      rpe: r.rpe,
+      average_hr: r.averageHr,
+      recovery_feeling: r.recoveryFeeling
+    }));
+    
+    if (records.length > 0) {
+      await supabase.from('workout_records').upsert(records);
+    }
   };
 
   const speak = (text: string) => {
