@@ -5,31 +5,14 @@ interface Props {
   profile: UserProfile;
 }
 
-export default function ProfileTab({ profile }: Props) {
-  // Simple calendar rendering for the current month
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = today.getMonth();
-  
+function renderMonth(year: number, month: number, completedDates: string[], startDate: Date | null, today: Date) {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const firstDayOfMonth = new Date(year, month, 1).getDay();
-
-  const completedDates = profile.history
-    .filter(record => record.completed)
-    .map(record => new Date(record.date).toDateString());
-
-  let startDate: Date | null = null;
-  if (profile.history.length > 0) {
-    const firstWorkout = profile.history.reduce((min, record) => {
-      const d = new Date(record.date);
-      return d < min ? d : min;
-    }, new Date(profile.history[0].date));
-    startDate = new Date(firstWorkout.getFullYear(), firstWorkout.getMonth(), firstWorkout.getDate());
-  }
+  const monthName = new Date(year, month, 1).toLocaleString('default', { month: 'short' });
 
   const days = [];
   for (let i = 0; i < firstDayOfMonth; i++) {
-    days.push(<div key={`empty-${i}`} style={{ padding: '8px' }}></div>);
+    days.push(<div key={`empty-${i}`} style={{ padding: '2px' }}></div>);
   }
 
   for (let d = 1; d <= daysInMonth; d++) {
@@ -45,18 +28,19 @@ export default function ProfileTab({ profile }: Props) {
       isMissed = true;
     }
 
-    const bgColor = isCompleted ? '#10b981' : isMissed ? 'rgba(239, 68, 68, 0.15)' : 'transparent';
-    const textColor = isCompleted ? '#000' : isMissed ? '#ef4444' : 'var(--text-main)';
+    const bgColor = isCompleted ? '#10b981' : isMissed ? 'rgba(239, 68, 68, 0.2)' : 'transparent';
+    const textColor = isCompleted ? '#000' : isMissed ? '#ef4444' : 'var(--text-muted)';
 
     days.push(
       <div 
         key={d} 
         style={{ 
-          padding: '8px 0', 
+          padding: '2px 0', 
           textAlign: 'center', 
-          borderRadius: '8px',
+          borderRadius: '4px',
           background: bgColor,
           color: textColor,
+          fontSize: '0.65rem',
           border: isToday && !isCompleted ? '1px solid var(--primary-color)' : 'none',
           fontWeight: isCompleted || isToday ? 'bold' : 'normal'
         }}
@@ -64,6 +48,33 @@ export default function ProfileTab({ profile }: Props) {
         {d}
       </div>
     );
+  }
+
+  return (
+    <div key={month} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+      <div style={{ textAlign: 'center', fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--text-main)', marginBottom: '4px' }}>{monthName}</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px' }}>
+        {days}
+      </div>
+    </div>
+  );
+}
+
+export default function ProfileTab({ profile }: Props) {
+  const today = new Date();
+  const year = today.getFullYear();
+  
+  const completedDates = profile.history
+    .filter(record => record.completed)
+    .map(record => new Date(record.date).toDateString());
+
+  let startDate: Date | null = null;
+  if (profile.history.length > 0) {
+    const firstWorkout = profile.history.reduce((min, record) => {
+      const d = new Date(record.date);
+      return d < min ? d : min;
+    }, new Date(profile.history[0].date));
+    startDate = new Date(firstWorkout.getFullYear(), firstWorkout.getMonth(), firstWorkout.getDate());
   }
 
   return (
@@ -78,17 +89,11 @@ export default function ProfileTab({ profile }: Props) {
 
       <div className="glass-panel" style={{ padding: '24px' }}>
         <h3 style={{ marginBottom: '16px', color: 'var(--text-main)', textAlign: 'center' }}>
-          {today.toLocaleString('default', { month: 'long' })} Tracker
+          {year} Tracker
         </h3>
         
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', marginBottom: '8px' }}>
-          {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
-            <div key={day} style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem' }}>{day}</div>
-          ))}
-        </div>
-        
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px' }}>
-          {days}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', rowGap: '24px' }}>
+          {Array.from({ length: 12 }, (_, i) => renderMonth(year, i, completedDates, startDate, today))}
         </div>
       </div>
       <button onClick={() => supabase.auth.signOut()} style={{ padding: '16px', background: 'transparent', border: '1px solid #ef4444', color: '#ef4444', borderRadius: '100px', fontWeight: 'bold', marginTop: '24px', width: '100%' }}>
