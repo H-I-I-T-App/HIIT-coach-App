@@ -1,0 +1,7 @@
+version: '3'
+services:
+  hiit-app:
+    build: .
+    ports:
+      - "8106:80"
+    restart: unless-stopped
