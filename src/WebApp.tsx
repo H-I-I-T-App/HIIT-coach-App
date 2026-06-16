@@ -11,6 +11,7 @@ import { LEVEL_WORKOUTS } from './data/workouts';
 import { supabase } from './supabaseClient';
 import LoginScreen from './components/LoginScreen';
 import type { Session } from '@supabase/supabase-js';
+import confetti from 'canvas-confetti';
 
 type AppState = 'home' | 'profile' | 'group' | 'custom-config' | 'active' | 'survey' | 'finished';
 type Phase = 'warmup' | 'prep' | 'work' | 'rest' | 'cooldown';
@@ -64,6 +65,18 @@ export default function WebApp() {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (appState === 'finished') {
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#fbbf24', '#f59e0b', '#10b981', '#3b82f6'],
+        zIndex: 1000
+      });
+    }
+  }, [appState]);
 
   const initProfile = async (userId: string) => {
     let p = { ...DEFAULT_PROFILE, id: userId };
@@ -474,10 +487,33 @@ export default function WebApp() {
       )}
 
       {appState === 'finished' && (
-        <div className="fade-in" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-          <h2 style={{ fontSize: '3rem', color: 'var(--primary-color)', marginBottom: '16px', textAlign: 'center' }}>Workout Complete!</h2>
-          <button className="btn-primary" onClick={() => setAppState('home')}>
-            <RotateCcw size={24} /> Return Home
+        <div className="fade-in" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '24px' }}>
+          <div style={{ fontSize: '4rem', marginBottom: '16px' }}>🏆</div>
+          <h2 style={{ fontSize: '3rem', background: 'linear-gradient(to right, #fbbf24, #f59e0b)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: '8px' }}>
+            Congratulations!
+          </h2>
+          <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem', marginBottom: '32px' }}>
+            You absolutely crushed <strong>{activeWorkoutConfig?.name || 'that workout'}</strong>.
+          </p>
+          
+          <div className="glass-panel" style={{ padding: '24px', width: '100%', maxWidth: '300px', marginBottom: '32px' }}>
+            <h3 style={{ color: 'var(--primary-color)', marginBottom: '16px' }}>Workout Stats</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <span style={{ color: 'var(--text-muted)' }}>Rounds:</span>
+              <strong>{activeWorkoutConfig?.rounds}</strong>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <span style={{ color: 'var(--text-muted)' }}>Work:</span>
+              <strong>{activeWorkoutConfig?.workTime}s</strong>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ color: 'var(--text-muted)' }}>Rest:</span>
+              <strong>{activeWorkoutConfig?.restTime}s</strong>
+            </div>
+          </div>
+
+          <button className="btn-primary" onClick={() => setAppState('home')} style={{ padding: '16px 32px', fontSize: '1.2rem' }}>
+            <RotateCcw size={24} style={{ marginRight: '8px' }} /> Return Home
           </button>
         </div>
       )}

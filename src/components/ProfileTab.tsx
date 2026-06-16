@@ -27,6 +27,12 @@ export default function ProfileTab({ profile }: Props) {
     const dateStr = new Date(year, month, d).toDateString();
     const isCompleted = completedDates.includes(dateStr);
     const isToday = dateStr === today.toDateString();
+    
+    const isPast = new Date(year, month, d) < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const isMissed = isPast && !isCompleted;
+
+    const bgColor = isCompleted ? '#10b981' : isMissed ? 'rgba(239, 68, 68, 0.15)' : 'transparent';
+    const textColor = isCompleted ? '#000' : isMissed ? '#ef4444' : 'var(--text-main)';
 
     days.push(
       <div 
@@ -35,8 +41,8 @@ export default function ProfileTab({ profile }: Props) {
           padding: '8px 0', 
           textAlign: 'center', 
           borderRadius: '8px',
-          background: isCompleted ? 'var(--primary-color)' : 'transparent',
-          color: isCompleted ? '#000' : 'var(--text-main)',
+          background: bgColor,
+          color: textColor,
           border: isToday && !isCompleted ? '1px solid var(--primary-color)' : 'none',
           fontWeight: isCompleted || isToday ? 'bold' : 'normal'
         }}
