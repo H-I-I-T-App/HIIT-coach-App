@@ -10,7 +10,7 @@ import type { WorkoutConfig, WorkoutRecord, UserProfile } from './types';
 import { LEVEL_WORKOUTS } from './data/workouts';
 import { supabase } from './supabaseClient';
 import LoginScreen from './components/LoginScreen';
-import { Session } from '@supabase/supabase-js';
+import type { Session } from '@supabase/supabase-js';
 
 type AppState = 'home' | 'profile' | 'group' | 'custom-config' | 'active' | 'survey' | 'finished';
 type Phase = 'warmup' | 'prep' | 'work' | 'rest' | 'cooldown';
