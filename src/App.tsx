@@ -280,14 +280,14 @@ function App() {
           </div>
           
           <div style={{ flex: 1 }}>
-            <h3 style={{ marginBottom: '16px', borderBottom: '1px solid #334155', paddingBottom: '8px' }}>Workouts</h3>
-            {LEVEL_WORKOUTS.map(w => (
-              <div key={w.id} className="glass-panel" style={{ padding: '16px', marginBottom: '16px', cursor: 'pointer' }} onClick={() => startWorkoutConfig(w)}>
-                <h4 style={{ color: 'var(--primary-color)', marginBottom: '4px' }}>{w.name}</h4>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{w.workTime}s work / {w.restTime}s rest x {w.rounds} rounds</p>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Target RPE: {w.rpeTarget}</p>
-              </div>
-            ))}
+            <h3 style={{ marginBottom: '16px', borderBottom: '1px solid #334155', paddingBottom: '8px', textAlign: 'center' }}>Workouts</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+              {LEVEL_WORKOUTS.map(w => (
+                <div key={w.id} className="glass-panel" style={{ padding: '12px 32px', cursor: 'pointer', textAlign: 'center', minWidth: '200px', width: 'fit-content' }} onClick={() => startWorkoutConfig(w)}>
+                  <h4 style={{ color: 'var(--primary-color)', margin: 0 }}>{w.name}</h4>
+                </div>
+              ))}
+            </div>
 
             <button style={{ width: '100%', padding: '16px', marginTop: '16px', background: 'transparent', border: '1px solid var(--primary-color)', color: 'var(--primary-color)', borderRadius: '100px', fontWeight: 'bold' }} onClick={() => setAppState('custom-config')}>
               Create Custom Workout
