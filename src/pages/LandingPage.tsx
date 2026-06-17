@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom';
-import logo from '../assets/logo.png';
+import { Flame } from 'lucide-react';
 
 export default function LandingPage() {
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '48px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', minHeight: '100vh', justifyContent: 'center' }}>
-      <img src={logo} alt="HIIT Coach Logo" style={{ width: '120px', height: '120px', marginBottom: '32px' }} />
+      <div className="glowing-icon" style={{ marginBottom: '32px' }}>
+        <Flame size={120} color="var(--primary-color)" strokeWidth={1.5} />
+      </div>
       
       <div style={{ color: 'var(--gold)', fontSize: '0.8rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '16px' }}>
         Train Hard, Track Progress

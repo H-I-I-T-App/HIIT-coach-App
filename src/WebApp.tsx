@@ -1,11 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { Play, Pause, Square, RotateCcw, Home, User, Users, LogOut } from 'lucide-react';
+import { Play, Pause, Square, RotateCcw, Home, User, Users, LogOut, Flame } from 'lucide-react';
 import TimerRing from './components/TimerRing';
 import ConfigSlider from './components/ConfigSlider';
 import PostWorkoutSurvey from './components/PostWorkoutSurvey';
 import ProfileTab from './components/ProfileTab';
 import GroupTab from './components/GroupTab';
-import logo from './assets/logo.png';
 import type { WorkoutConfig, WorkoutRecord, UserProfile } from './types';
 import { LEVEL_WORKOUTS } from './data/workouts';
 import { supabase } from './supabaseClient';
@@ -389,60 +388,70 @@ export default function WebApp() {
         <LogOut size={24} />
       </button>
       {appState !== 'home' && appState !== 'profile' && appState !== 'group' && (
-        <img 
-          src={logo} 
-          alt="Back to Dashboard" 
-          style={{ position: 'absolute', top: 24, left: 24, width: '48px', height: '48px', cursor: 'pointer', zIndex: 100 }} 
+        <button 
+          className="btn-icon"
+          style={{ position: 'absolute', top: 24, left: 24, background: 'transparent', border: 'none', color: 'var(--primary-color)', cursor: 'pointer', zIndex: 100 }} 
           onClick={() => {
             if (timerRef.current) clearInterval(timerRef.current);
             setAppState('home');
           }}
-        />
+        >
+          <Flame size={32} />
+        </button>
       )}
       {appState === 'home' && (
         <div className="fade-in" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '32px', marginTop: '24px' }}>
-            <img src={logo} alt="HIIT Logo" style={{ width: '120px', height: '120px', borderRadius: '24px', marginBottom: '16px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.5)' }} />
-            <h1 style={{ fontSize: '2.5rem', marginBottom: '8px', background: 'linear-gradient(to right, #fbbf24, #f59e0b)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          <div style={{ textAlign: 'center', marginBottom: '40px', marginTop: '32px' }}>
+            <div className="glowing-icon" style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
+              <Flame size={80} color="var(--primary-color)" strokeWidth={1.5} />
+            </div>
+            <h1 style={{ fontSize: '3rem', marginBottom: '8px', background: 'linear-gradient(to right, #fbbf24, #fcd34d)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', letterSpacing: '0.05em' }}>
               H.I.I.T
             </h1>
-            <div style={{ marginTop: '8px', color: 'var(--primary-color)', fontWeight: 'bold' }}>
-              Current Level: {profile.currentLevel}
+            <div style={{ marginTop: '12px', color: 'var(--primary-color)', fontWeight: 'bold', letterSpacing: '0.1em', textTransform: 'uppercase', fontSize: '0.9rem' }}>
+              Current Level &bull; {profile.currentLevel}
             </div>
-            <div style={{ marginTop: '8px', color: 'var(--text-muted)' }}>
+            <div style={{ marginTop: '12px', color: 'var(--text-muted)' }}>
               Welcome back, <strong style={{ color: 'var(--text-main)' }}>{session.user.user_metadata?.full_name || session.user.email?.split('@')[0]}</strong>
             </div>
           </div>
           
-          <div style={{ flex: 1 }}>
-            <h3 style={{ marginBottom: '16px', borderBottom: '1px solid #334155', paddingBottom: '8px', textAlign: 'center' }}>Workouts</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+          <div style={{ flex: 1, padding: '0 16px' }}>
+            <h3 style={{ marginBottom: '24px', color: 'var(--text-muted)', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.1em', textAlign: 'center' }}>Select Workout</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
               {LEVEL_WORKOUTS.map(w => (
-                <div key={w.id} className="glass-panel" style={{ padding: '12px 24px', cursor: 'pointer', textAlign: 'center', width: '280px' }} onClick={() => startWorkoutConfig(w)}>
-                  <h4 style={{ color: 'var(--primary-color)', margin: 0 }}>{w.name}</h4>
+                <div key={w.id} className="glass-panel workout-card" style={{ padding: '20px 24px', cursor: 'pointer', textAlign: 'left', width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} onClick={() => startWorkoutConfig(w)}>
+                  <h4 style={{ color: 'var(--text-main)', margin: 0, fontSize: '1.2rem' }}>{w.name}</h4>
+                  <div style={{ color: 'var(--primary-color)' }}><Play size={24} fill="currentColor" /></div>
                 </div>
               ))}
               
               {profile.customWorkouts && profile.customWorkouts.length > 0 && (
-                <div style={{ width: '280px', marginTop: '16px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ width: '100%', marginTop: '24px', paddingTop: '24px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <h3 style={{ color: '#10b981', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.1em', textAlign: 'center', marginBottom: '8px' }}>Custom Workouts</h3>
                   {profile.customWorkouts.map(cw => (
-                    <div key={cw.id} className="glass-panel" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', cursor: 'pointer', textAlign: 'left', width: '100%', background: 'rgba(16, 185, 129, 0.1)', borderColor: 'rgba(16, 185, 129, 0.3)' }} onClick={() => startWorkoutConfig(cw)}>
-                      <h4 style={{ color: '#10b981', margin: 0 }}>{cw.name}</h4>
-                      <button 
-                        onClick={(e) => deleteCustomWorkout(e, cw.id)} 
-                        style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '4px' }}
-                        title="Delete Custom Workout"
-                      >
-                        <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>&times;</span>
-                      </button>
+                    <div key={cw.id} className="glass-panel workout-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', cursor: 'pointer', textAlign: 'left', width: '100%', background: 'rgba(16, 185, 129, 0.05)', borderColor: 'rgba(16, 185, 129, 0.2)' }} onClick={() => startWorkoutConfig(cw)}>
+                      <h4 style={{ color: '#10b981', margin: 0, fontSize: '1.1rem' }}>{cw.name}</h4>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <Play size={20} color="#10b981" fill="#10b981" />
+                        <button 
+                          onClick={(e) => deleteCustomWorkout(e, cw.id)} 
+                          style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '4px', transition: 'color 0.2s' }}
+                          onMouseEnter={(e) => e.currentTarget.style.color = '#ef4444'}
+                          onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.3)'}
+                          title="Delete Custom Workout"
+                        >
+                          <span style={{ fontSize: '1.5rem', lineHeight: 1 }}>&times;</span>
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
               )}
             </div>
 
-            <button style={{ width: '100%', padding: '16px', marginTop: '24px', background: 'transparent', border: '1px solid var(--primary-color)', color: 'var(--primary-color)', borderRadius: '100px', fontWeight: 'bold' }} onClick={() => setAppState('custom-config')}>
-              Create Custom Workout
+            <button className="glass-panel" style={{ width: '100%', padding: '16px', marginTop: '32px', background: 'transparent', color: 'var(--primary-color)', fontWeight: 'bold', fontSize: '1rem', transition: 'all 0.3s' }} onClick={() => setAppState('custom-config')}>
+              + Create Custom Workout
             </button>
           </div>
         </div>
