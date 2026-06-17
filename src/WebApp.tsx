@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Play, Pause, Square, RotateCcw, Home, User, Users, LogOut, Flame, Info } from 'lucide-react';
+import { Play, Pause, Square, RotateCcw, Home, User, Users, LogOut, Flame } from 'lucide-react';
 import TimerRing from './components/TimerRing';
 import ConfigSlider from './components/ConfigSlider';
 import PostWorkoutSurvey from './components/PostWorkoutSurvey';
@@ -380,13 +380,15 @@ export default function WebApp() {
 
   return (
     <div style={{ maxWidth: '600px', margin: '0 auto', minHeight: '100vh', display: 'flex', flexDirection: 'column', padding: '24px', position: 'relative' }}>
-      <button 
-        onClick={() => supabase.auth.signOut()} 
-        style={{ position: 'absolute', top: '24px', right: '24px', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', zIndex: 100 }}
-        title="Sign Out"
-      >
-        <LogOut size={24} />
-      </button>
+      {appState === 'home' && (
+        <button 
+          onClick={() => supabase.auth.signOut()} 
+          style={{ position: 'absolute', top: '24px', right: '24px', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', zIndex: 100 }}
+          title="Sign Out"
+        >
+          <LogOut size={24} />
+        </button>
+      )}
       {appState !== 'home' && appState !== 'profile' && appState !== 'group' && (
         <button 
           className="btn-icon"
@@ -405,7 +407,11 @@ export default function WebApp() {
             <div className="glowing-icon" style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
               <Flame size={80} color="var(--primary-color)" strokeWidth={1.5} />
             </div>
-            <h1 style={{ fontSize: '3rem', marginBottom: '8px', background: 'linear-gradient(to right, #fbbf24, #fcd34d)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', letterSpacing: '0.05em' }}>
+            <h1 
+              style={{ fontSize: '3rem', marginBottom: '8px', background: 'linear-gradient(to right, #fbbf24, #fcd34d)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', letterSpacing: '0.05em', cursor: 'pointer' }}
+              onClick={() => setAppState('about')}
+              title="About H.I.I.T"
+            >
               H.I.I.T
             </h1>
             <div style={{ marginTop: '12px', color: 'var(--primary-color)', fontWeight: 'bold', letterSpacing: '0.1em', textTransform: 'uppercase', fontSize: '0.9rem' }}>
@@ -425,7 +431,11 @@ export default function WebApp() {
                   <div style={{ color: 'var(--primary-color)' }}><Play size={24} fill="currentColor" /></div>
                 </div>
               ))}
-              
+              <div className="glass-panel workout-card" style={{ padding: '20px 24px', cursor: 'pointer', textAlign: 'left', width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }} onClick={() => setAppState('custom-config')}>
+                <h4 style={{ color: 'var(--primary-color)', margin: 0, fontSize: '1.2rem' }}>Create Custom Workout</h4>
+                <div style={{ color: 'var(--primary-color)' }}><span style={{ fontSize: '1.8rem', lineHeight: 1 }}>+</span></div>
+              </div>
+
               {profile.customWorkouts && profile.customWorkouts.length > 0 && (
                 <div style={{ width: '100%', marginTop: '24px', paddingTop: '24px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   <h3 style={{ color: '#10b981', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.1em', textAlign: 'center', marginBottom: '8px' }}>Custom Workouts</h3>
@@ -448,15 +458,6 @@ export default function WebApp() {
                   ))}
                 </div>
               )}
-            </div>
-
-            <div style={{ display: 'flex', gap: '12px', marginTop: '32px', width: '100%' }}>
-              <button className="glass-panel" style={{ flex: 1, padding: '16px', background: 'transparent', color: 'var(--primary-color)', fontWeight: 'bold', fontSize: '1rem', transition: 'all 0.3s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }} onClick={() => setAppState('custom-config')}>
-                <span style={{ fontSize: '1.4rem', lineHeight: 1 }}>+</span> Custom
-              </button>
-              <button className="glass-panel" style={{ flex: 1, padding: '16px', background: 'transparent', color: 'var(--text-muted)', fontWeight: 'bold', fontSize: '1rem', transition: 'all 0.3s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }} onClick={() => setAppState('about')} onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-main)'} onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}>
-                <Info size={20} /> About
-              </button>
             </div>
           </div>
         </div>
