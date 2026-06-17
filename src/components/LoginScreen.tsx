@@ -17,6 +17,11 @@ export default function LoginScreen() {
     }
   };
 
+  const handleAlexLogin = () => {
+    localStorage.setItem('dev_alex_login', 'true');
+    window.location.reload();
+  };
+
   return (
     <div className="fade-in" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
       <div className="glowing-icon" style={{ marginBottom: '32px' }}>
@@ -47,6 +52,31 @@ export default function LoginScreen() {
       >
         <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google Logo" style={{ width: '24px', height: '24px' }} />
         Sign in with Google
+      </button>
+
+      <button 
+        onClick={handleAlexLogin} 
+        style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          gap: '12px',
+          background: 'rgba(255, 255, 255, 0.1)', 
+          color: '#fff', 
+          border: '1px solid rgba(255, 255, 255, 0.2)', 
+          padding: '16px 32px', 
+          borderRadius: '100px', 
+          fontSize: '1.1rem',
+          fontWeight: 'bold',
+          cursor: 'pointer',
+          width: '100%',
+          maxWidth: '300px',
+          marginTop: '16px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+        }}
+      >
+        <Flame size={24} color="var(--primary-color)" />
+        I don't want to create a profile
       </button>
     </div>
   );

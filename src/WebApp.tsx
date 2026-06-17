@@ -50,6 +50,16 @@ export default function WebApp() {
   const audioCtxRef = useRef<AudioContext | null>(null);
 
   useEffect(() => {
+    if (localStorage.getItem('dev_alex_login') === 'true') {
+      const fakeSession = {
+        user: { id: 'alex-test-user-id', user_metadata: { full_name: 'Alex Logon' }, email: 'alex@test.hiit' }
+      } as any;
+      setSession(fakeSession);
+      setLoadingAuth(false);
+      initProfile('alex-test-user-id', fakeSession);
+      return;
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setLoadingAuth(false);
@@ -61,6 +71,7 @@ export default function WebApp() {
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (localStorage.getItem('dev_alex_login') === 'true') return;
       setSession(session);
       if (session) {
         initProfile(session.user.id, session);
@@ -432,7 +443,11 @@ export default function WebApp() {
       />
       {appState === 'home' && (
         <button 
-          onClick={() => supabase.auth.signOut()} 
+          onClick={() => {
+            localStorage.removeItem('dev_alex_login');
+            supabase.auth.signOut();
+            window.location.reload();
+          }} 
           style={{ position: 'absolute', top: '24px', right: '24px', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', zIndex: 100 }}
           title="Sign Out"
         >
