@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Play, Pause, Square, RotateCcw, Home, User, Users, LogOut, Flame } from 'lucide-react';
+import { Play, Pause, Square, RotateCcw, Home, User, Users, LogOut, Flame, Info } from 'lucide-react';
 import TimerRing from './components/TimerRing';
 import ConfigSlider from './components/ConfigSlider';
 import PostWorkoutSurvey from './components/PostWorkoutSurvey';
@@ -12,7 +12,7 @@ import LoginScreen from './components/LoginScreen';
 import type { Session } from '@supabase/supabase-js';
 import confetti from 'canvas-confetti';
 
-type AppState = 'home' | 'profile' | 'group' | 'custom-config' | 'active' | 'survey' | 'finished';
+type AppState = 'home' | 'profile' | 'group' | 'custom-config' | 'active' | 'survey' | 'finished' | 'about';
 type Phase = 'warmup' | 'prep' | 'work' | 'rest' | 'cooldown';
 
 const formatTime = (seconds: number) => {
@@ -450,9 +450,14 @@ export default function WebApp() {
               )}
             </div>
 
-            <button className="glass-panel" style={{ width: '100%', padding: '16px', marginTop: '32px', background: 'transparent', color: 'var(--primary-color)', fontWeight: 'bold', fontSize: '1rem', transition: 'all 0.3s' }} onClick={() => setAppState('custom-config')}>
-              + Create Custom Workout
-            </button>
+            <div style={{ display: 'flex', gap: '12px', marginTop: '32px', width: '100%' }}>
+              <button className="glass-panel" style={{ flex: 1, padding: '16px', background: 'transparent', color: 'var(--primary-color)', fontWeight: 'bold', fontSize: '1rem', transition: 'all 0.3s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }} onClick={() => setAppState('custom-config')}>
+                <span style={{ fontSize: '1.4rem', lineHeight: 1 }}>+</span> Custom
+              </button>
+              <button className="glass-panel" style={{ flex: 1, padding: '16px', background: 'transparent', color: 'var(--text-muted)', fontWeight: 'bold', fontSize: '1rem', transition: 'all 0.3s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }} onClick={() => setAppState('about')} onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-main)'} onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}>
+                <Info size={20} /> About
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -541,6 +546,42 @@ export default function WebApp() {
           <button className="btn-primary" onClick={() => setAppState('home')} style={{ padding: '16px 32px', fontSize: '1.2rem' }}>
             <RotateCcw size={24} style={{ marginRight: '8px' }} /> Return Home
           </button>
+        </div>
+      )}
+
+      {appState === 'about' && (
+        <div className="fade-in" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto', padding: '16px 0' }}>
+          <h2 style={{ textAlign: 'center', marginBottom: '24px', color: 'var(--primary-color)', fontSize: '2rem' }}>What is H.I.I.T?</h2>
+          
+          <div className="glass-panel" style={{ padding: '24px', marginBottom: '24px', lineHeight: 1.6 }}>
+            <h3 style={{ color: 'var(--text-main)', marginBottom: '12px', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Flame size={20} color="var(--danger-color)" /> Maximum Efficiency
+            </h3>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '16px' }}>
+              High-Intensity Interval Training (H.I.I.T) involves short bursts of intense exercise alternated with low-intensity recovery periods. It is the most time-efficient way to exercise.
+            </p>
+            
+            <h3 style={{ color: 'var(--text-main)', marginBottom: '12px', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Flame size={20} color="var(--primary-color)" /> The Afterburn Effect
+            </h3>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '16px' }}>
+              Because H.I.I.T pushes your body into an anaerobic state, it triggers EPOC (Excess Post-Exercise Oxygen Consumption). This means your body continues to burn calories at a higher rate for up to 24 hours <em>after</em> your workout is finished.
+            </p>
+
+            <h3 style={{ color: 'var(--text-main)', marginBottom: '12px', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Flame size={20} color="#10b981" /> Cardiovascular Health
+            </h3>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '16px' }}>
+              H.I.I.T rapidly improves cardiovascular health, lowers blood pressure, and increases your VO2 max (your body's ability to use oxygen) much faster than traditional steady-state cardio.
+            </p>
+
+            <h3 style={{ color: 'var(--text-main)', marginBottom: '12px', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Flame size={20} color="#3b82f6" /> How to use this App
+            </h3>
+            <p style={{ color: 'var(--text-muted)', margin: 0 }}>
+              Start at Level 1. Do not advance to the next level until you can complete the current level with a Rating of Perceived Exertion (RPE) of 7 or lower. Consistency is key!
+            </p>
+          </div>
         </div>
       )}
 
