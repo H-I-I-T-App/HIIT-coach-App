@@ -404,7 +404,7 @@ export default function WebApp() {
       {appState === 'home' && (
         <div className="fade-in" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '40px', marginTop: '32px' }}>
-            <div className="glowing-icon" style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
+            <div className="glowing-icon" style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px', cursor: 'pointer' }} onClick={() => setAppState('about')} title="About H.I.I.T">
               <Flame size={80} color="var(--primary-color)" strokeWidth={1.5} />
             </div>
             <h1 
