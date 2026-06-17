@@ -131,7 +131,7 @@ export default function WebApp() {
       }]);
     }
 
-    if (p.history.length === 0 && !localStorage.getItem('hiitTourComplete')) {
+    if (p.history.length === 0 && !localStorage.getItem(`hiitTourComplete_${userId}`)) {
       setRunTour(true);
     }
 
@@ -169,7 +169,9 @@ export default function WebApp() {
     
     if (finishedStatuses.includes(status)) {
       setRunTour(false);
-      localStorage.setItem('hiitTourComplete', 'true');
+      if (session?.user?.id) {
+        localStorage.setItem(`hiitTourComplete_${session.user.id}`, 'true');
+      }
     }
   };
 
