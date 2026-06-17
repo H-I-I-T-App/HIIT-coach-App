@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Play, Pause, Square, RotateCcw, Home, User, Users, LogOut, Flame } from 'lucide-react';
+import { Joyride, STATUS } from 'react-joyride';
+import type { Step, EventData } from 'react-joyride';
 import TimerRing from './components/TimerRing';
 import ConfigSlider from './components/ConfigSlider';
 import PostWorkoutSurvey from './components/PostWorkoutSurvey';
@@ -26,6 +28,7 @@ const DEFAULT_PROFILE: UserProfile = { age: 30, currentLevel: 1, history: [], jo
 export default function WebApp() {
   const [session, setSession] = useState<Session | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
+  const [runTour, setRunTour] = useState(false);
 
   const [appState, setAppState] = useState<AppState>('home');
   const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE);
@@ -116,6 +119,20 @@ export default function WebApp() {
           recoveryFeeling: r.recovery_feeling
         }));
       }
+    } else {
+      p.name = userName;
+      await supabase.from('users').insert([{
+        id: userId,
+        name: userName,
+        age: 30,
+        current_level: 1,
+        joined_group: null,
+        custom_workouts: []
+      }]);
+    }
+
+    if (p.history.length === 0 && !localStorage.getItem('hiitTourComplete')) {
+      setRunTour(true);
     }
 
     if (p.history.length > 0) {
@@ -129,6 +146,31 @@ export default function WebApp() {
       }
     }
     setProfile(p);
+  };
+
+  const tourSteps: Step[] = [
+    {
+      target: '.tour-logo',
+      content: 'Welcome to HIIT Coach! Click this flame to learn the science and purpose behind High-Intensity Interval Training.',
+    },
+    {
+      target: '.tour-profile',
+      content: 'This is your Profile. Track your 12-month workout calendar and level progression here.',
+    },
+    {
+      target: '.tour-group',
+      content: 'Create a secure token to invite friends and compete on a shared leaderboard!',
+    }
+  ];
+
+  const handleJoyrideCallback = (data: EventData) => {
+    const { status } = data;
+    const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
+    
+    if (finishedStatuses.includes(status)) {
+      setRunTour(false);
+      localStorage.setItem('hiitTourComplete', 'true');
+    }
   };
 
   const saveProfile = async (newProfile: UserProfile) => {
@@ -380,6 +422,12 @@ export default function WebApp() {
 
   return (
     <div style={{ maxWidth: '600px', margin: '0 auto', minHeight: '100vh', display: 'flex', flexDirection: 'column', padding: '24px', position: 'relative' }}>
+      <Joyride
+        steps={tourSteps}
+        run={runTour}
+        continuous
+        onEvent={handleJoyrideCallback}
+      />
       {appState === 'home' && (
         <button 
           onClick={() => supabase.auth.signOut()} 
@@ -404,7 +452,7 @@ export default function WebApp() {
       {appState === 'home' && (
         <div className="fade-in" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '40px', marginTop: '32px' }}>
-            <div className="glowing-icon" style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px', cursor: 'pointer' }} onClick={() => setAppState('about')} title="About H.I.I.T">
+            <div className="glowing-icon tour-logo" style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px', cursor: 'pointer' }} onClick={() => setAppState('about')} title="About H.I.I.T">
               <Flame size={80} color="var(--primary-color)" strokeWidth={1.5} />
             </div>
             <h1 
@@ -591,10 +639,10 @@ export default function WebApp() {
       {appState === 'group' && <GroupTab profile={profile} onUpdateProfile={saveProfile} />}
 
       {['home', 'profile', 'group'].includes(appState) && (
-        <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', background: '#1e293b', padding: '16px', borderRadius: '100px', marginTop: '16px', boxShadow: '0 -4px 20px rgba(0,0,0,0.5)', zIndex: 100 }}>
+        <div className="bottom-nav" style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', background: '#1e293b', padding: '16px', borderRadius: '100px', marginTop: '16px', boxShadow: '0 -4px 20px rgba(0,0,0,0.5)', zIndex: 100 }}>
           <button onClick={() => setAppState('home')} style={{ background: 'transparent', color: appState === 'home' ? 'var(--primary-color)' : 'var(--text-muted)' }}><Home size={28} /></button>
-          <button onClick={() => setAppState('profile')} style={{ background: 'transparent', color: appState === 'profile' ? 'var(--primary-color)' : 'var(--text-muted)' }}><User size={28} /></button>
-          <button onClick={() => setAppState('group')} style={{ background: 'transparent', color: appState === 'group' ? 'var(--primary-color)' : 'var(--text-muted)' }}><Users size={28} /></button>
+          <button className="tour-profile" onClick={() => setAppState('profile')} style={{ background: 'transparent', color: appState === 'profile' ? 'var(--primary-color)' : 'var(--text-muted)' }}><User size={28} /></button>
+          <button className="tour-group" onClick={() => setAppState('group')} style={{ background: 'transparent', color: appState === 'group' ? 'var(--primary-color)' : 'var(--text-muted)' }}><Users size={28} /></button>
         </div>
       )}
     </div>
