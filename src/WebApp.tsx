@@ -144,6 +144,7 @@ export default function WebApp() {
 
     if (p.history.length === 0 && !localStorage.getItem(`hiitTourComplete_${userId}`)) {
       setRunTour(true);
+      localStorage.setItem(`hiitTourComplete_${userId}`, 'true');
     }
 
     if (p.history.length > 0) {
