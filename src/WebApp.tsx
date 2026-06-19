@@ -455,7 +455,7 @@ export default function WebApp() {
           <LogOut size={24} />
         </button>
       )}
-      {appState !== 'home' && appState !== 'profile' && appState !== 'group' && (
+      {appState !== 'home' && (
         <button 
           className="btn-icon"
           style={{ position: 'absolute', top: 24, left: 24, background: 'transparent', border: 'none', color: 'var(--primary-color)', cursor: 'pointer', zIndex: 100 }} 
