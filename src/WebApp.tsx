@@ -52,11 +52,11 @@ export default function WebApp() {
   useEffect(() => {
     if (localStorage.getItem('dev_alex_login') === 'true') {
       const fakeSession = {
-        user: { id: 'alex-test-user-id', user_metadata: { full_name: 'Alex Logon' }, email: 'alex@test.hiit' }
+        user: { id: 'guest-test-user-id', user_metadata: { full_name: 'Active Guest' }, email: 'guest@test.hiit' }
       } as any;
       setSession(fakeSession);
       setLoadingAuth(false);
-      initProfile('alex-test-user-id', fakeSession);
+      initProfile('guest-test-user-id', fakeSession);
       return;
     }
 
