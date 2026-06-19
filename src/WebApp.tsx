@@ -657,7 +657,7 @@ export default function WebApp() {
       {appState === 'group' && <GroupTab profile={profile} onUpdateProfile={saveProfile} />}
 
       {['home', 'profile', 'group'].includes(appState) && (
-        <div className="bottom-nav" style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', background: '#1e293b', padding: '16px', borderRadius: '100px', marginTop: '16px', boxShadow: '0 -4px 20px rgba(0,0,0,0.5)', zIndex: 100 }}>
+        <div className="bottom-nav" style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-around', alignItems: 'center', background: '#1e293b', padding: '16px', borderRadius: '100px', marginTop: '16px', boxShadow: '0 -4px 20px rgba(0,0,0,0.5)', zIndex: 100 }}>
           <button onClick={() => setAppState('home')} style={{ background: 'transparent', color: appState === 'home' ? 'var(--primary-color)' : 'var(--text-muted)' }}><Home size={28} /></button>
           <button className="tour-profile" onClick={() => setAppState('profile')} style={{ background: 'transparent', color: appState === 'profile' ? 'var(--primary-color)' : 'var(--text-muted)' }}><User size={28} /></button>
           <button className="tour-group" onClick={() => setAppState('group')} style={{ background: 'transparent', color: appState === 'group' ? 'var(--primary-color)' : 'var(--text-muted)' }}><Users size={28} /></button>
