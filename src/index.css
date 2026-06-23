@@ -123,6 +123,15 @@ button {
   transform: translateY(1px);
 }
 
+.btn-icon:active {
+  transform: scale(0.95);
+}
+
+.hover-month:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  transform: scale(1.05);
+}
+
 .btn-icon {
   background: rgba(30, 41, 59, 0.6);
   color: var(--text-main);
